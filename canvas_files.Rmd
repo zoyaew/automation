@@ -1,0 +1,78 @@
+---
+title: "Web Crawling Automation"
+author: "zewahyu"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load the required library for the project:
+
+```{r loadlib, echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+library(RSelenium)
+library(rvest)
+library(seleniumPipes)
+```
+
+Instantiate a new remoteDriver to connect to a running server.
+Then, use the open method to open the browser and navigate to the specified URL.
+
+```{r connect to the server}
+
+remDr <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "chrome")
+remDr$open(silent = TRUE)
+remDr$navigate("https://canvas.ust.hk/courses/32139/files?") #! change to the respective canvas file url
+Sys.sleep(2)
+
+```
+
+```{r login}
+
+student_login <- remDr$findElements(using = "class", "btn-block")
+student_login[[1]]$clickElement()
+
+username <- remDr$findElement(using = "id", "userNameInput")
+username$sendKeysToElement(list("username")) #! erase after finish
+password <- remDr$findElement(using = "id", "passwordInput")
+password$sendKeysToElement(list("password")) #! erase after finish
+
+submit <- remDr$findElement(using = "id", "submitButton")
+submit$clickElement()
+
+#! DUO MOBILE manual
+Sys.sleep(5)
+
+```
+
+
+```{r get documents}
+
+file <- remDr$findElement(using = "class", "ef-name-col__text")
+file$clickElement()
+firstUrl = remDr$getCurrentUrl()[[1]]
+
+repeat{
+  
+  tryCatch({ # In case the file is part of an unpublished module and is not available yet.
+      download_file <- remDr$findElement(using = "class", "ef-file-preview-header-download")
+      download_file$clickElement()
+      }, error=function(e){}
+  )
+
+  right_button <- remDr$findElement(using = "class", "icon-arrow-open-right")
+  right_button$clickElement()
+  Sys.sleep(3)
+  
+  if(remDr$getCurrentUrl()[[1]] != firstUrl){
+    break
+  }
+}
+
+```
+
+```{r close browser}
+remDr$close()
+
+```
