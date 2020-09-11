@@ -53,8 +53,9 @@ file <- remDr$findElement(using = "class", "ef-name-col__text")
 file$clickElement()
 firstUrl = remDr$getCurrentUrl()[[1]]
 
-repeat{
-  
+not_first=FALSE
+
+while(remDr$getCurrentUrl()[[1]]!=firstUrl | not_first==FALSE){
   tryCatch({ # In case the file is part of an unpublished module and is not available yet.
       download_file <- remDr$findElement(using = "class", "ef-file-preview-header-download")
       download_file$clickElement()
@@ -64,10 +65,8 @@ repeat{
   right_button <- remDr$findElement(using = "class", "icon-arrow-open-right")
   right_button$clickElement()
   Sys.sleep(3)
-  
-  if(remDr$getCurrentUrl()[[1]] != firstUrl){
-    break
-  }
+
+  not_first=TRUE
 }
 
 ```
